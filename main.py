@@ -23,7 +23,7 @@ RE_EXTRACT_IMAGES = re.compile(r"!\[.*?]\((?P<filename>.*?)\)")
 class Site:
     name: str = ""
     author: str = ""
-    url: str = ""
+    domain: str = ""
     pages: list = field(default_factory=list)
 
 
