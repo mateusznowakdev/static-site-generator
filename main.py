@@ -211,17 +211,7 @@ def transform_pages(site):
 
 
 def get_page_context(site, page):
-    projects = [p for p in site.pages if p.type == "project"]
-    articles = [p for p in site.pages if p.type == "article"]
-    related = [p for p in site.pages if p.url != page.url][:3]
-
-    return {
-        "site": site,
-        "page": page,
-        "projects": projects,
-        "articles": articles,
-        "related": related,
-    }
+    return {"site": site, "page": page}
 
 
 def export_pages(site, templates_dir):
@@ -240,10 +230,7 @@ def export_pages(site, templates_dir):
 
 
 def get_sitemap_context(site):
-    return {
-        "site": site,
-        "pages": site.pages,
-    }
+    return {"site": site}
 
 
 def export_sitemap(site, templates_dir, output_dir):
@@ -256,11 +243,7 @@ def export_sitemap(site, templates_dir, output_dir):
 
 
 def get_feed_context(site):
-    return {
-        "site": site,
-        "pages": [p for p in site.pages if p.date],
-        "now": datetime.now(UTC),
-    }
+    return {"site": site, "now": datetime.now(UTC)}
 
 
 def export_feed(site, templates_dir, output_dir):
