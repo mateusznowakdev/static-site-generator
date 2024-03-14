@@ -102,9 +102,6 @@ def parse_config(target_dir, config_file):
     pages = site.pages
 
     for page_data in pages:
-        if not page_data["url"].startswith("/"):
-            page_data["url"] = "/" + page_data["url"]
-
         path = Path(target_dir / page_data["url"].lstrip("/"))
         if path.suffix == ".html":
             src = path.with_suffix(".md")
