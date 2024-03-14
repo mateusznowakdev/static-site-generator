@@ -122,7 +122,8 @@ def parse_config(target_dir, config_file):
 
     pages = [Page(**p) for p in pages]
     pages = sorted(
-        pages, key=lambda p: (p.date or datetime(1970, 1, 1, 0, 0, tzinfo=UTC), p.url),
+        pages,
+        key=lambda p: p.date or datetime(1970, 1, 1, 0, 0, tzinfo=UTC),
         reverse=True,
     )
     site.pages = pages
