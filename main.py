@@ -153,17 +153,15 @@ def calculate_crop(image, gravity):
 
 
 def convert_png_jpg_to_webp(img_file):
-    png_file = img_file.with_suffix(".png")
-    jpg_file = img_file.with_suffix(".png")
+    extensions = ".png", ".jpg"
 
-    if png_file.exists():
-        with Image.open(png_file) as img:
-            img.save(img_file, quality=90)
-            print(f"WARNING: '{png_file.name}' converted, copy it, embed, and restart")
-    elif jpg_file.exists():
-        with Image.open(jpg_file) as img:
-            img.save(img_file, quality=90)
-            print(f"WARNING: '{jpg_file.name}' converted, copy it, embed, and restart")
+    for ext in extensions:
+        file = img_file.with_suffix(ext)
+        if file.exists():
+            with Image.open(file) as img:
+                img.save(file.with_suffix(".webp"), quality=90)
+                print(f"WARNING: '{file.name}' converted, copy it, embed, and restart")
+            break
 
 
 def transform_pages(site):
