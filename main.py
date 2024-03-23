@@ -159,6 +159,7 @@ def convert_png_jpg_to_webp(img_file):
         file = img_file.with_suffix(ext)
         if file.exists():
             with Image.open(file) as img:
+                img.thumbnail((2560, 9999))
                 img.save(file.with_suffix(".webp"), quality=90)
                 print(f"WARNING: '{file.name}' converted, copy it, embed, and restart")
             break
