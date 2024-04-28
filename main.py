@@ -168,7 +168,7 @@ def convert_png_jpg_to_webp(img_file):
 def transform_pages(site):
     markdown = create_markdown(
         renderer=CustomRenderer(escape=False),
-        plugins=("strikethrough", "superscript"),
+        plugins=("strikethrough", "superscript", "table"),
     )
 
     for page in site.pages:
