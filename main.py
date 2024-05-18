@@ -8,9 +8,13 @@ from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader
 from mistune import create_markdown
+from mistune.directives import RSTDirective, TableOfContents
+from mistune.plugins.formatting import strikethrough, superscript
+from mistune.plugins.table import table
 from mistune.renderers.html import HTMLRenderer
 from mistune.util import escape, safe_entity, striptags
 from PIL import Image
+from slugify import slugify
 from yaml import safe_load
 
 RE_FRONTMATTER = re.compile(
@@ -67,6 +71,11 @@ class CustomRenderer(HTMLRenderer):
         s += ' loading="lazy" />'
         s = self.link(s, url)
         return "</p><figure>" + s + "</figure><p>"
+
+
+class CustomTableOfContents(TableOfContents):
+    def generate_heading_id(self, token, index):
+        return slugify(token["text"])
 
 
 def get_template(template_file):
@@ -168,7 +177,12 @@ def convert_png_jpg_to_webp(img_file):
 def transform_pages(site):
     markdown = create_markdown(
         renderer=CustomRenderer(escape=False),
-        plugins=("strikethrough", "superscript", "table"),
+        plugins=(
+            RSTDirective([CustomTableOfContents()]),
+            strikethrough,
+            superscript,
+            table
+        ),
     )
 
     for page in site.pages:
