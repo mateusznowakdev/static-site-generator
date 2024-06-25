@@ -72,6 +72,9 @@ class CustomRenderer(HTMLRenderer):
         s = self.link(s, url)
         return "</p><figure>" + s + "</figure><p>"
 
+    def table(self, text):
+        return '<div class="table-wrapper"><table>' + text + "</table></div>"
+
 
 class CustomTableOfContents(TableOfContents):
     def generate_heading_id(self, token, index):
