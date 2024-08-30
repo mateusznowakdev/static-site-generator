@@ -60,17 +60,15 @@ class CustomRenderer(HTMLRenderer):
         return s + ">" + text + "</a>"
 
     def image(self, text, url, title=None):
-        # added srcset and loading, wrapped into clickable figure
-        src = self.safe_url(url)
-        src2, ext = os.path.splitext(src)
-        alt = escape(striptags(text))
-        s = '<img src="' + src2 + '-w1024.webp" alt="' + alt + '"'
-        if title:
-            s += ' title="' + safe_entity(title) + '"'
-        s += ' srcset="' + src2 + "-w1024.webp, " + src2 + '.webp 2x"'
+        # added srcset and loading, wrapped into clickable figure with figcaption
+        url = self.safe_url(url)
+        stem, ext = os.path.splitext(url)
+        alt = striptags(text)
+        s = '<img src="' + stem + '-w1024.webp" alt="' + alt + '"'
+        s += ' title="' + safe_entity(title or alt) + '"'
         s += ' loading="lazy" />'
-        s = self.link(s, url)
-        return "</p><figure>" + s + "</figure><p>"
+        s = self.link(s, stem + '.webp')
+        return "</p><figure>" + s + "<figcaption>" + alt + "</figcaption></figure><p>"
 
     def table(self, text):
         return '<div class="table-wrapper"><table>' + text + "</table></div>"
@@ -164,17 +162,27 @@ def calculate_crop(image, gravity):
     return crop
 
 
-def convert_png_jpg_to_webp(img_file):
-    extensions = ".png", ".jpg"
+def generate_article_thumbnails(image_file):
+    with Image.open(image_file) as img:
+        img.thumbnail((min(img.width, 1920), 9999))
+        img.save(image_file.parent / f"{image_file.stem}.webp", quality=90)
+        img.thumbnail((1024, 9999))
+        img.save(image_file.parent / f"{image_file.stem}-w1024.webp", quality=90)
 
-    for ext in extensions:
-        file = img_file.with_suffix(ext)
-        if file.exists():
-            with Image.open(file) as img:
-                img.thumbnail((2560, 9999))
-                img.save(file.with_suffix(".webp"), quality=90)
-                print(f"WARNING: '{file.name}' converted, copy it, embed, and restart")
-            break
+    image_file.unlink()
+
+
+
+def generate_banner_thumbnails(image_file, gravity):
+    with Image.open(image_file) as img:
+        img.thumbnail((min(img.width, 1920), 9999))
+        img.save(image_file.parent / f"{image_file.stem}.webp", quality=90)
+        img = img.crop(calculate_crop(img, gravity))
+        img.thumbnail((720, 720))
+        img.save(image_file.parent / f"{image_file.stem}-w720.webp", quality=90)
+
+    image_file.unlink()
+
 
 
 def transform_pages(site):
@@ -195,12 +203,10 @@ def transform_pages(site):
             extracted_image_files = RE_EXTRACT_IMAGES.findall(page.content)
             for rel_file in extracted_image_files:
                 file = parent_dir / rel_file
-                convert_png_jpg_to_webp(file)
-
-                with Image.open(file) as img:
-                    # todo add support for vertical images
-                    img.thumbnail((1024, 9999))
-                    img.save(file.parent / f"{file.stem}-w1024.webp", quality=75)
+                try:
+                    generate_article_thumbnails(file)
+                except FileNotFoundError:
+                    pass
 
         page.content = markdown(page.content)
 
@@ -208,20 +214,16 @@ def transform_pages(site):
             parent_dir = page.src.parent
 
             for feature in page.custom.get("features") or {}:
-                banner_id = feature.get("banner_id")
+                banner = feature.get("banner")
                 banner_gravity = feature.get("banner_gravity")
-                if not banner_id:
+                if not banner:
                     continue
 
-                file = parent_dir / f"{banner_id}.webp"
-                convert_png_jpg_to_webp(file)
-
-                with Image.open(file) as img:
-                    img = img.crop(calculate_crop(img, banner_gravity))
-                    img.thumbnail((720, 720))
-                    img.save(parent_dir / f"{banner_id}-w720.webp", quality=75)
-                    img.thumbnail((360, 360))
-                    img.save(parent_dir / f"{banner_id}-w360.webp", quality=75)
+                file = parent_dir / banner
+                try:
+                    generate_banner_thumbnails(file, banner_gravity)
+                except FileNotFoundError:
+                    pass
 
 
 def get_page_context(site, page):
